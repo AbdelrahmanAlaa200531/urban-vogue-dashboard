@@ -5,7 +5,9 @@ import streamlit as st
 
 # Page Configuration
 st.set_page_config(
-    page_title="Urban Vogue - Performance Analytics", page_icon="📊", layout="wide"
+    page_title="Urban Vogue - Performance Analytics",
+    page_icon="📊",
+    layout="wide",
 )
 
 st.title("📊 Urban Vogue - Performance Analytics Dashboard")
@@ -42,7 +44,9 @@ else:
   df = load_data()
 
 if df is None:
-  st.warning("⚠️ Data file not found in repository.")
+  st.warning(
+      "⚠️ Data file not found in repository. Please make sure Data.xlsx is uploaded."
+  )
   st.stop()
 
 # Sidebar Filters
@@ -89,15 +93,11 @@ total_conversions = filtered_df["Conversions"].sum()
 roas = (total_revenue / total_spend) if total_spend > 0 else 0
 cpa = (total_spend / total_conversions) if total_conversions > 0 else 0
 
-# KPIs Grid (3x2)
-k1, k2, k3 = st.columns(3)
+# KPIs Grid
+k1, k2, k3, k4, k5, k6 = st.columns(6)
 k1.metric("Total Revenue", f"${total_revenue:,.2f}")
 k2.metric("Total Profit", f"${total_profit:,.2f}")
 k3.metric("Ad Spend", f"${total_spend:,.2f}")
-
-st.markdown("###")
-
-k4, k5, k6 = st.columns(3)
 k4.metric("ROAS", f"{roas:.2f}x")
 k5.metric("Total Conversions", f"{total_conversions:,}")
 k6.metric("CPA", f"${cpa:.2f}")
@@ -175,7 +175,6 @@ with tab2:
       })
       .reset_index()
   )
-
   channel_perf["ROAS"] = channel_perf["Revenue"] / channel_perf["Ad Spend"]
   channel_perf["CPA"] = channel_perf["Ad Spend"] / channel_perf["Conversions"]
 
@@ -255,3 +254,26 @@ with tab3:
         cust_summary,
         x="Customer Type",
         y=["Avg Revenue", "Avg Profit"],
+        barmode="group",
+        title="Average Order Revenue & Profit per Customer Type",
+        labels={"value": "USD ($)"},
+        color_discrete_sequence=["#3a86ff", "#8338ec"],
+    )
+    st.plotly_chart(fig_cust_bar, use_container_width=True)
+
+  st.subheader("Customer Type Distribution Across Channels")
+  chan_cust = (
+      filtered_df.groupby(["Channel", "Customer Type"])["Revenue"]
+      .sum()
+      .reset_index()
+  )
+  fig_chan_cust = px.bar(
+      chan_cust,
+      x="Channel",
+      y="Revenue",
+      color="Customer Type",
+      barmode="stack",
+      title="Revenue by Channel & Customer Type",
+      color_discrete_sequence=["#ff9f1c", "#2ec4b6"],
+  )
+  st.plotly_chart(fig_chan_cust, use_container_width=True)
